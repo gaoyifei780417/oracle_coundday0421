@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>添加功能</title>
+</head>
+<div  th:include="common.html"></div>
+<script src="../static/kindeditor/kindeditor-all-min.js"></script>
+<script src="../static/kindeditor/lang/zh-CN.js"></script>
+<script>
+    KindEditor.ready(function(K) {
+        window.editor = K.create('#editor_id');
+    });
+</script>
+<body>
+<form th:action="@{/book/add}" method="post" enctype="multipart/form-data">
+    图书名称:<input type="text" name="bookName"/><br>
+    书籍简介:<textarea id="editor_id" name="bookIntroduce" style="width:700px;height:300px;"></textarea>
+    <br>
+    书籍作者:<input type="text" name="bookAuthor"/><br>
+    书籍图片:<input type="file" name="file" accept="image/* "/>
+    <input type="submit" value="上传" class="btn btn-success"/>
+
+    <br>
+</form>
+
+</body>
+</html>

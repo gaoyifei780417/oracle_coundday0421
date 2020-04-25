@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>图书管理列表</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/4.4.1/css/bootstrap.css}">
+    <script src="../static/js/jquery-1.9.1.min.js"></script>
+    <div th:include="common.html"></div>
+
+
+</head>
+<script>
+
+    function  restoration (id){
+        if (confirm("是否归还图书？")){
+            $(function () {
+                var url="/book/restorationBook?bookid="+id ;
+                $.get(url,function (msg) {
+                    //如果归还成功， 则弹框提示用户，并且刷新当前页面
+                    if (msg==1){
+                        alert("图书归还成功！")
+                        //重新加载页面
+                        location.href= "/book/list";
+                    }else{
+                        alert("图书归还失败！")
+                    }
+                })
+            })
+        }
+    }
+
+    /**
+     * 点赞功能
+     * @param id
+     */
+    function updown(id) {
+        $(function () {
+            var url = "/book/updown?id="+id ;
+            $.get(
+                url,
+                function (msg) {
+                    alert(msg)
+                    if(msg=="yes"){
+                        alert("点赞成功!");
+                    }else if(msg=="notLogin"){
+                        alert("没有登录")
+                    }else {
+                        alert("不能点赞");
+                    }
+                }
+            )
+        })
+    }
+
+    //获取一下数据库中的数据
+    function queryBorrwing(id) {
+        $(function () {
+            alert();
+            var url = "/borro/queryBookBorrowingList?bookid="+id;
+            $.getJSON(url,function (list) {
+                if(list!=null){
+                    //数据的拼接
+                    var append = "" ;
+                    for(var i = 0;i<list.length ;i++){
+                        //时间处理
+                        //var time = new Date(list[i].borrowing);
+                        append +=
+                            " <tr>"
+                            +"<td>" +(i+1)+"</td>"
+                            + "<td>"+list[i].bookName+"</td>"
+                            + "<td>"+time+"</td>"
+                            + "<td>"+list[i].loginName+"</td>"
+                            +"</tr>" ;
+                    }
+                    $("#queryBorroingInfoList").append(append);
+
+                }
+            })
+        })
+    }
+
+</script>
+<body>
+<a th:href="@{/book/toadd}">添加</a>
+<form th:action="@{/book/list}">
+    借出时间区间查询:<input type="text" name="startTime" id="date1"/>--
+    <input type="text" name="endTime" id="date2"/>
+    书籍名称:<input type="text" name="bookName"/>
+    <button type="submit">模糊查询</button>
+
+</form>
+
+<table  class="table table-bordered table-hover">
+    <tr style="text-align: center" class="table warning" disabled="true">
+        <th>编号</th>
+        <th>书籍名称</th>
+        <th>简介</th>
+        <th>作者</th>
+        <th>浏览量</th>
+        <th>租借的状态</th>
+        <th>书籍封面</th>
+        <th>最近借出时间</th>
+        <th>点击量</th>
+        <th>编辑</th>
+    </tr>
+    <tr th:each="list,s:${alist}">
+        <td th:text="${s.index+1}"></td>
+        <td th:text="${list.bookName}"></td>
+        <td th:text="${list.bookIntroduce}"></td>
+        <td th:text="${list.bookAuthor}"></td>
+        <td th:text="${list.borrowingCount}"></td>
+        <td th:if="${list.borrowingFlag} =='1'" th:text="已借出"></td>
+        <td th:if="${list.borrowingFlag} =='0'" th:text="未借出"></td>
+        <td><img th:src="@{${list.picUrl}}" alt="图片" style="width: 60px; height: 60px"></td>
+        <td th:text="${#dates.format(list.borrowingNewTime,'yyyy-MM-dd HH:mm:ss')}"></td>
+        <td th:text="${list.traffic}"></td>
+        <td>
+            <span th:if="${list.flag} eq '0' " ><button class="btn-info"><a th:href="@{/book/lendBook(bookid=${list.id})}">借出</a></button></span>
+            <span th:if="${list.flag} eq '1' " ><button class="btn" th:onclick="restoration([[${list.id}]])">归还</button></span>
+            <button class="btn btn-primary" th:onclick="queryBorrwing([[${list.id}]])" data-toggle="modal" data-target="#myModal">借阅记录</button>
+            <span> <button class="btn-danger" th:onclick="updown([[${list.id}]])">点赞</button></span>
+            <span><button class="btn-info"><a th:href="@{/book/toQueryBookInfo(bookid=${list.id})}">查看详情</a></button></span>
+        </td>
+    </tr>
+</table>
+
+<!--模态框-->
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    借阅记录
+                </h4>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row clearfix">
+                        <div class="col-md-10 column">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        编号
+                                    </th>
+                                    <th>
+                                        图书名称
+                                    </th>
+                                    <th>
+                                        借阅时间
+                                    </th>
+                                    <th>
+                                        借阅用户
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody id="queryBorroingInfoList">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+
+
+
+
+</body>
+</html>
